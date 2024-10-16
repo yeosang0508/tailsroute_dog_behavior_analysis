@@ -8,6 +8,7 @@ public class ProjectTailsrouteApplication {
 
 	public static void main(String[] args) {
 		System.out.println("안녕하세요");
+		System.out.println("안녕하세요 인사빌런이에요");
 		SpringApplication.run(ProjectTailsrouteApplication.class, args);
 	}
 }
