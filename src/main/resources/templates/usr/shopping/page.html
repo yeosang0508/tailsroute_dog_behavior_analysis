@@ -194,13 +194,21 @@
             headerToolbar: {
                 start: 'prev',
                 center: 'title',
-                end: 'next'
+                end: 'customButton next'
+            },
+            customButtons: {
+                customButton: {
+                    text: '일정 생성',
+                    click: function() {
+                        // 일정 생성 팝업 열기
+                        openPopup();
+                    }
+                }
             },
 
 // 달력 날짜 클릭 시 팝업 열고 날짜 저장
             dateClick: function (info) {
                 selectedDate = info.dateStr; // 클릭한 날짜를 저장
-                openPopup(); // 팝업 열기
             }
         });
 
@@ -214,6 +222,7 @@
                         start: event.purchaseDate, // 구매 날짜
                         allDay: true, // 하루 종일 일정
                         extendedProps: {
+                            selecteDate: event.selecteDate,
                             usageCycle: event.usageCycle, // 구매 주기
                             timing: event.timing, // 알림 일수
                             purchaseStatus: event.purchaseStatus // 구매 상태
@@ -230,11 +239,12 @@
         calendar.on('eventClick', function (info) {
             selectedEvent = info.event; // 클릭한 이벤트를 저장
             selectedEventId = info.event.id; // 클릭한 일정의 ID 저장
+            const eventDate = selectedEvent.start; // 시작 날짜
+            const formattedDate = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD 형식으로 변환
+            document.getElementById("scheduleDate").value = formattedDate; // 팝업의 날짜 필드에 설정
             document.getElementById("itemName").value = selectedEvent.title; // 일정 제목을 팝업에 표시
             document.getElementById("purchaseCycle").value = selectedEvent.extendedProps.usageCycle || ''; // 구매 주기
             document.getElementById("alarmDays").value = selectedEvent.extendedProps.timing || ''; // 알림 일수
-            const purchaseStatus = selectedEvent.extendedProps.purchaseStatus; // 구매 상태
-            document.querySelector(`input[name="purchaseStatus"][value="${purchaseStatus}"]`).checked = true; // 해당 라디오 버튼 체크
 
             // 팝업을 수정 모드로 열기
             openPopup(true); // true 인자를 통해 수정 모드 활성화
@@ -286,10 +296,10 @@
 
         // 일정 생성 버튼 클릭 시
         document.getElementById("createScheduleBtn").addEventListener("click", function () {
+            selectedDate = document.getElementById("scheduleDate").value;
             const itemName = document.getElementById("itemName").value;
             const purchaseCycle = document.getElementById("purchaseCycle").value;
             const alarmDays = document.getElementById("alarmDays").value;
-            const purchaseStatus = document.querySelector('input[name="purchaseStatus"]:checked').value;
 
             // 필수 입력값 확인
             if (!itemName || !alarmDays || !selectedDate) {
@@ -311,8 +321,7 @@
                 itemType: itemName, // 생필품 이름
                 purchaseDate: selectedDate, // 선택한 날짜
                 usageCycle: purchaseCycle, // 선택한 주기
-                timing: alarmDays, // 알람 일수
-                purchaseStatus: purchaseStatus // 구매 여부 (0 또는 1)
+                timing: alarmDays // 알람 일수
             };
 
             // 생필품 정보를 서버에 전송
@@ -341,10 +350,10 @@
 
 // 일정 수정 버튼 클릭 시
         document.getElementById("updateScheduleBtn").addEventListener("click", function () {
+            const purchaseDate = document.getElementById("scheduleDate").value;
             const itemName = document.getElementById("itemName").value;
             const purchaseCycle = document.getElementById("purchaseCycle").value;
             const alarmDays = document.getElementById("alarmDays").value;
-            const purchaseStatus = document.querySelector('input[name="purchaseStatus"]:checked').value;
 
             if (selectedEventId) {
                 // PUT 메소드로 수정 요청 보내기
@@ -354,10 +363,10 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        purchaseDate: purchaseDate,
                         itemType: itemName,
                         usageCycle: purchaseCycle,
                         timing: alarmDays,
-                        purchaseStatus: purchaseStatus,
                         id: selectedEventId // 선택된 이벤트의 ID를 함께 전송
                     })
                 })
@@ -469,13 +478,21 @@
         tableBody.innerHTML = ""; // 기존 내용을 지웁니다.
 
         essentials.forEach(item => {
+            // 구매일을 Date 객체로 변환
+            const purchaseDate = new Date(item.purchaseDate);
+
+            // 알람 일수를 빼서 알람 날짜 계산
+            const alarmDate = new Date(purchaseDate);
+            alarmDate.setDate(purchaseDate.getDate() - item.timing); // timing을 빼기
+
+            // 알람 날짜를 포맷팅 (예: YYYY-MM-DD 형식으로 변환)
+            const alarmDateFormatted = alarmDate.toISOString().split('T')[0]; // YYYY-MM-DD 형식
             const row = document.createElement("tr");
             row.innerHTML = `
             <td>${item.itemType}</td>
             <td>${item.purchaseDate}</td>
             <td>${item.usageCycle}일</td>
-            <td>${item.timing}일 전</td>
-            <td>${item.purchaseStatus !== null ? (item.purchaseStatus ? '구매함' : '미구매') : '미구매'}</td>
+            <td>${alarmDateFormatted}</td>
         `;
             // 클릭 이벤트 추가
             row.addEventListener("click", () => {
@@ -500,30 +517,21 @@
         <span class="close">&times;</span>
         <h2>생필품 일정 관리</h2>
 
+        <!-- 일정 날짜 입력-->
+        <label for="scheduleDate">일정 날짜 선택:</label>
+        <input type="date" id="scheduleDate" /><br/><br/>
+
         <!-- 생필품 입력 -->
         <label for="itemName">생필품 이름:</label>
         <input type="text" id="itemName" placeholder="생필품 이름을 입력하세요"/><br/><br/>
 
         <!-- 구매 주기 선택 -->
-        <label for="purchaseCycle">구매 주기:</label>
-        <select id="purchaseCycle">
-            <option value="7">1주일</option>
-            <option value="14">2주일</option>
-            <option value="30">1개월</option>
-            <option value="60">2개월</option>
-            <option value="90">3개월</option>
-        </select><br/><br/>
+        <label for="purchaseCycle">구매 주기 (일):</label>
+        <input type="number" id="purchaseCycle" placeholder="구매 주기를 입력하세요" min="1" /><br/><br/>
 
         <!-- 알람 설정 -->
         <label for="alarmDays">알람 (며칠 전에 알림):</label>
-        <input type="number" id="alarmDays" placeholder="예: 3"/><br/><br/>
-
-        <!-- 구매 여부 체크박스 추가 -->
-        <label>구매 여부:</label><br/>
-        <input type="radio" id="purchaseYes" name="purchaseStatus" value="1">
-        <label for="purchaseYes">구매함</label><br/>
-        <input type="radio" id="purchaseNo" name="purchaseStatus" value="0" checked>
-        <label for="purchaseNo">미구매</label><br/><br/>
+        <input type="number" id="alarmDays" placeholder="예: 3" min="1"/><br/><br/>
 
         <!-- 버튼들 -->
         <button id="createScheduleBtn">일정 생성</button>
@@ -543,7 +551,6 @@
                     <th>구매일</th>
                     <th>사용주기</th>
                     <th>알람</th>
-                    <th>구매여부</th>
                 </tr>
                 </thead>
                 <tbody>

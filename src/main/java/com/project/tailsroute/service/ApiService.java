@@ -14,12 +14,6 @@ public class ApiService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${naver.client.id}")
-    private String clientId;
-
-    @Value("${naver.client.secret}")
-    private String clientSecret;
-
     public ApiService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -30,6 +24,10 @@ public class ApiService {
 
         // 헤더에 Client ID와 Client Secret 설정
         HttpHeaders headers = new HttpHeaders();
+
+        String clientId = System.getenv("NAVER_CLIENT_ID");
+        String clientSecret = System.getenv("NAVER_CLIENT_SECRET");
+
         headers.set("X-Naver-Client-Id", clientId);
         headers.set("X-Naver-Client-Secret", clientSecret);
 
