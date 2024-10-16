@@ -111,7 +111,7 @@ public class UsrDiaryController {
         return "redirect:/usr/diary/list";
     }
     @GetMapping("/list")
-    public String showDiaryList(Model model) {
+    public String showDiaryList(Model model, @RequestParam(defaultValue = "oldest") String sort) {
         boolean isLogined = rq.isLogined();
 
         if (isLogined) {
@@ -120,11 +120,12 @@ public class UsrDiaryController {
         }
         model.addAttribute("isLogined", isLogined);
 
-        List<Diary> diaries = diaryService.getDiaryList();
+        List<Diary> diaries = diaryService.getDiaryList(sort);
 
         model.addAttribute("diaries", diaries);
         return "usr/diary/list";
     }
+
 
 
 

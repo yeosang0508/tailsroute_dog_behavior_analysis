@@ -41,13 +41,13 @@
             <thead>
 
             <!-- 필터 -->
-            <div >
-                <label for="dateFilter" class="text-lg font-semibold"></label>
-                <select id="dateFilter" class="px-4 py-2 border rounded font-bold text-gray-700">
-                    <option value="latest">최신 순</option>
-                    <option value="oldest">오래된 순</option>
+            <form action="list" method="get">
+                <select name="sort">
+                    <option value="newest">최신순</option>
+                    <option value="oldest">오래된순</option>
                 </select>
-            </div>
+                <button type="submit">정렬</button>
+            </form>
 
 
             <tr class="listType">

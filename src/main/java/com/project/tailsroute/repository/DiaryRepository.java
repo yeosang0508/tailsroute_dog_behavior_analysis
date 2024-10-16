@@ -73,7 +73,7 @@ public interface DiaryRepository {
             ON D.memberId = M.id
             ORDER BY D.id DESC
             """)
-	List<Diary> getDiary();
+	List<Diary> findAllByOrderByDateDesc();
 
 	@Select("""
         SELECT D.*, M.nickname AS extra__writer
@@ -82,7 +82,5 @@ public interface DiaryRepository {
             ON D.memberId = M.id
             ORDER BY D.id asc 		
 """)
-	List<Diary> getrecentDiary();
-
-	long count();
+	List<Diary> findAllByOrderByDateAsc();
 }
