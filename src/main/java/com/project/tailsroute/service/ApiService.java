@@ -38,7 +38,6 @@ public class ApiService {
         try {
             // 네이버 API 호출
             ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
-            System.out.println("Response: " + response.getBody());
 
             return response.getBody();
         } catch (HttpClientErrorException e) {
