@@ -27,11 +27,13 @@ public class DiaryService {
         diaryRepository.writeDiary(memberId, title, body, imagePath, startDate, endDate, takingTime, information);
     }
 
-    public List<Diary> getDiaryList() {
-
-        return diaryRepository.getDiary();
+    public List<Diary> getDiaryList(String sort) {
+        if ("oldest".equals(sort)) {
+            return diaryRepository.findAllByOrderByDateAsc(); // 오래된순
+        } else {
+            return diaryRepository.findAllByOrderByDateDesc(); // 최신순
+        }
     }
-
 
 
 }
