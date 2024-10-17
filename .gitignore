@@ -38,3 +38,22 @@ out/
 
 # 환경 변수 파일 무시하기
 .env
+
+# 가상 환경 폴더 제외
+dog_behavior_env/
+
+# Python 캐시 파일
+__pycache__/
+*.py[cod]
+
+# 로그 파일 및 임시 파일
+*.log
+*.tmp
+
+# Jupyter Notebook 체크포인트
+.ipynb_checkpoints/
+
+# 빌드 결과물
+build/
+dist/
+*.egg-info/
